@@ -16,7 +16,7 @@
     const ACCESS_TOKEN = new URLSearchParams(window.location.search).get('access_token');
     
     document.getElementById('login').addEventListener('click', () => {
-      const clientId = '<你的客户端ID>';
+      const clientId = '7a1e658a-3cc0-40e9-8ef5-74db3b30971f';
       const redirectUri = encodeURIComponent(process.env.REDIRECT_URI);
       window.location.href = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=Tasks.Read`;
     });
