@@ -1,38 +1,37 @@
 export default async (req, res) => {
-    console.log('请求头:', req.headers);
-    console.log('访问令牌:', req.query.accessToken);
-
+    console.log('请求方法:', req.method);
+    console.log('完整 URL:', req.url);
+  
     const { accessToken } = req.query;
+    console.log('访问令牌:', accessToken ? '存在' : '缺失');
   
     try {
-        const response = await fetch(
-            'https://graph.microsoft.com/v1.0/me/todo/lists',
-            {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
-
-        console.log('API 响应状态:', response.status);
-        const responseText = await response.text();
-        console.log('原始响应数据:', responseText);
-
-        if (!response.ok) {
-            throw new Error(`Microsoft API 返回错误: ${response.statusText}`);
+      const apiUrl = 'https://graph.microsoft.com/v1.0/me/todo/lists';
+      console.log('请求 Microsoft Graph:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
         }
-
-        const data = JSON.parse(responseText);
-        res.status(200).json(data);
+      });
+  
+      console.log('响应状态:', response.status);
+      const rawData = await response.text();
+      console.log('原始响应:', rawData.substring(0, 200)); // 截取部分内容
+  
+      if (!response.ok) {
+        throw new Error(`Microsoft 接口异常: ${response.status} ${response.statusText}`);
+      }
+  
+      const data = JSON.parse(rawData);
+      res.status(200).json(data);
     } catch (error) {
-        console.error('完整错误信息:', {
-            message: error.message,
-            stack: error.stack
-        });
-        res.status(500).json({ 
-            error: '获取任务列表失败',
-            details: process.env.NODE_ENV === 'development' ? error.message : '内部服务器错误'
-        });
+      console.error('完整错误轨迹:', error.stack);
+      res.status(500).json({
+        error: '服务端异常',
+        requestId: req.headers['x-vercel-id'],
+        details: process.env.NODE_ENV === 'production' ? '请联系管理员' : error.message
+      });
     }
-};
+  };

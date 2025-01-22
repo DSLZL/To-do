@@ -1,0 +1,11 @@
+{
+    "name": "todo-app",
+    "version": "1.0.0",
+    "scripts": {
+        "dev": "vercel dev"
+    },
+    "dependencies": {
+        "@vercel/node": "^3.0.0",
+        "vercel": "^39.3.0"
+    }
+}
