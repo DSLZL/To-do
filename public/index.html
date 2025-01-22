@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My To Do Tasks</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>My To Do List</h1>
+    <button id="login">Login with Microsoft</button>
+    <div id="lists"></div>
+    <div id="tasks"></div>
+  </div>
+
+  <script>
+    const ACCESS_TOKEN = new URLSearchParams(window.location.search).get('access_token');
+    
+    document.getElementById('login').addEventListener('click', () => {
+      const clientId = '<你的客户端ID>';
+      const redirectUri = encodeURIComponent(process.env.REDIRECT_URI);
+      window.location.href = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=Tasks.Read`;
+    });
+
+    async function loadLists() {
+      const response = await fetch('/api/lists?access_token=' + ACCESS_TOKEN);
+      const lists = await response.json();
+      
+      const listsDiv = document.getElementById('lists');
+      lists.value.forEach(list => {
+        const listElement = document.createElement('div');
+        listElement.innerHTML = `
+          <h2>${list.displayName}</h2>
+          <button onclick="loadTasks('${list.id}')">Show Tasks</button>
+        `;
+        listsDiv.appendChild(listElement);
+      });
+    }
+
+    async function loadTasks(listId) {
+      const response = await fetch(`/api/tasks?listId=${listId}&access_token=${ACCESS_TOKEN}`);
+      const tasks = await response.json();
+      
+      const tasksDiv = document.getElementById('tasks');
+      tasksDiv.innerHTML = tasks.value.map(task => `
+        <div class="task ${task.status === 'completed' ? 'completed' : ''}">
+          <h3>${task.title}</h3>
+          <p>Status: ${task.status}</p>
+          <p>Last modified: ${new Date(task.lastModifiedDateTime).toLocaleString()}</p>
+        </div>
+      `).join('');
+    }
+
+    if (ACCESS_TOKEN) {
+      loadLists();
+    }
+  </script>
+</body>
+</html>
